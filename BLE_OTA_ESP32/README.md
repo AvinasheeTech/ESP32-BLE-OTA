@@ -1,6 +1,7 @@
 ##Hardware Required
 
 ESP32 dev board<br />
+PC or raspberry pi<br />
 
 ##Menuconfig 
 
