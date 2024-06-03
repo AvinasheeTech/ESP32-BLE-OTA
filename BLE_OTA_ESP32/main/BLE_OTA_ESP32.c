@@ -15,6 +15,10 @@
 #include "esp_spiffs.h"
 #include "esp_system.h"
 
+#include "esp_mac.h"
+
+
+#include <inttypes.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/event_groups.h"
@@ -326,9 +330,9 @@ static void show_bonded_devices(void)
 
     esp_ble_bond_dev_t *dev_list = (esp_ble_bond_dev_t *)malloc(sizeof(esp_ble_bond_dev_t) * dev_num);
     esp_ble_get_bond_device_list(&dev_num, dev_list);
-    ESP_LOGI(TAG, "Bonded devices number : %d\n", dev_num);
+    // ESP_LOGI(TAG, "Bonded devices number : %d\n", dev_num);
 
-    ESP_LOGI(TAG, "Bonded devices list : %d\n", dev_num);
+    // ESP_LOGI(TAG, "Bonded devices list : %d\n", dev_num);
     for (int i = 0; i < dev_num; i++) {
         esp_log_buffer_hex(TAG, (void *)dev_list[i].bd_addr, sizeof(esp_bd_addr_t));
     }
@@ -381,30 +385,30 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
             ESP_LOGE(TAG, "advertising start failed, error status = %x", param->adv_start_cmpl.status);
             break;
         }
-        ESP_LOGI(TAG, "advertising start success");
+        // ESP_LOGI(TAG, "advertising start success");
         break;
     case ESP_GAP_BLE_PASSKEY_REQ_EVT:                           /* passkey request event */
-        ESP_LOGI(TAG, "ESP_GAP_BLE_PASSKEY_REQ_EVT");
+        // ESP_LOGI(TAG, "ESP_GAP_BLE_PASSKEY_REQ_EVT");
         /* Call the following function to input the passkey which is displayed on the remote device */
         //esp_ble_passkey_reply(heart_rate_profile_tab[HEART_PROFILE_APP_IDX].remote_bda, true, 0x00);
         break;
     case ESP_GAP_BLE_OOB_REQ_EVT: {
-        ESP_LOGI(TAG, "ESP_GAP_BLE_OOB_REQ_EVT");
+        // ESP_LOGI(TAG, "ESP_GAP_BLE_OOB_REQ_EVT");
         uint8_t tk[16] = {1}; //If you paired with OOB, both devices need to use the same tk
         esp_ble_oob_req_reply(param->ble_security.ble_req.bd_addr, tk, sizeof(tk));
         break;
     }
     case ESP_GAP_BLE_LOCAL_IR_EVT:                               /* BLE local IR event */
-        ESP_LOGI(TAG, "ESP_GAP_BLE_LOCAL_IR_EVT");
+        // ESP_LOGI(TAG, "ESP_GAP_BLE_LOCAL_IR_EVT");
         break;
     case ESP_GAP_BLE_LOCAL_ER_EVT:                               /* BLE local ER event */
-        ESP_LOGI(TAG, "ESP_GAP_BLE_LOCAL_ER_EVT");
+        // ESP_LOGI(TAG, "ESP_GAP_BLE_LOCAL_ER_EVT");
         break;
     case ESP_GAP_BLE_NC_REQ_EVT:
         /* The app will receive this evt when the IO has DisplayYesNO capability and the peer device IO also has DisplayYesNo capability.
         show the passkey number to the user to confirm it with the number displayed by peer device. */
         esp_ble_confirm_reply(param->ble_security.ble_req.bd_addr, true);
-        ESP_LOGI(TAG, "ESP_GAP_BLE_NC_REQ_EVT, the passkey Notify number:%d", param->ble_security.key_notif.passkey);
+        // ESP_LOGI(TAG, "ESP_GAP_BLE_NC_REQ_EVT, the passkey Notify number:%d", param->ble_security.key_notif.passkey);
         break;
     case ESP_GAP_BLE_SEC_REQ_EVT:
         /* send the positive(true) security response to the peer device to accept the security request.
@@ -413,11 +417,11 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
         break;
     case ESP_GAP_BLE_PASSKEY_NOTIF_EVT:  ///the app will receive this evt when the IO  has Output capability and the peer device IO has Input capability.
         ///show the passkey number to the user to input it in the peer device.
-        ESP_LOGI(TAG, "The passkey Notify number:%06d", param->ble_security.key_notif.passkey);
+        // ESP_LOGI(TAG, "The passkey Notify number:%06d", param->ble_security.key_notif.passkey);
         break;
     case ESP_GAP_BLE_KEY_EVT:
         //shows the ble key info share with peer device to the user.
-        ESP_LOGI(TAG, "key type = %s", esp_key_type_to_str(param->ble_security.ble_key.key_type));
+        // ESP_LOGI(TAG, "key type = %s", esp_key_type_to_str(param->ble_security.ble_key.key_type));
         break;
     case ESP_GAP_BLE_AUTH_CMPL_EVT: {
         esp_bd_addr_t bd_addr;
@@ -427,22 +431,22 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
                 (bd_addr[0] << 24) + (bd_addr[1] << 16) + (bd_addr[2] << 8) + bd_addr[3],
                 (bd_addr[4] << 8) + bd_addr[5]);
     
-        ESP_LOGI(TAG, "address type = %d", param->ble_security.auth_cmpl.addr_type);
-        ESP_LOGI(TAG, "pair status = %s",param->ble_security.auth_cmpl.success ? "success" : "fail");
+        // ESP_LOGI(TAG, "address type = %d", param->ble_security.auth_cmpl.addr_type);
+        // ESP_LOGI(TAG, "pair status = %s",param->ble_security.auth_cmpl.success ? "success" : "fail");
         if(!param->ble_security.auth_cmpl.success) {
-            ESP_LOGI(TAG, "fail reason = 0x%x",param->ble_security.auth_cmpl.fail_reason);
+            // ESP_LOGI(TAG, "fail reason = 0x%x",param->ble_security.auth_cmpl.fail_reason);
         } else {
-            ESP_LOGI(TAG, "auth mode = %s",esp_auth_req_to_str(param->ble_security.auth_cmpl.auth_mode));
+            // ESP_LOGI(TAG, "auth mode = %s",esp_auth_req_to_str(param->ble_security.auth_cmpl.auth_mode));
         }
         show_bonded_devices();
         break;
     }
     case ESP_GAP_BLE_REMOVE_BOND_DEV_COMPLETE_EVT: {
         ESP_LOGD(TAG, "ESP_GAP_BLE_REMOVE_BOND_DEV_COMPLETE_EVT status = %d", param->remove_bond_dev_cmpl.status);
-        ESP_LOGI(TAG, "ESP_GAP_BLE_REMOVE_BOND_DEV");
-        ESP_LOGI(TAG, "-----ESP_GAP_BLE_REMOVE_BOND_DEV----");
+        // ESP_LOGI(TAG, "ESP_GAP_BLE_REMOVE_BOND_DEV");
+        // ESP_LOGI(TAG, "-----ESP_GAP_BLE_REMOVE_BOND_DEV----");
         esp_log_buffer_hex(TAG, (void *)param->remove_bond_dev_cmpl.bd_addr, sizeof(esp_bd_addr_t));
-        ESP_LOGI(TAG, "------------------------------------");
+        // ESP_LOGI(TAG, "------------------------------------");
         break;
     }
     case ESP_GAP_BLE_SET_LOCAL_PRIVACY_COMPLETE_EVT:
@@ -454,10 +458,10 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
         /*******************************MAC Address*******************************/
         
         ESP_ERROR_CHECK(esp_efuse_mac_get_default(device_data.mac_address));
-        ESP_LOGI(TAG,"Base Mac address");
+        // ESP_LOGI(TAG,"Base Mac address");
 
         for(int mac_size=0;mac_size<sizeof(device_data.mac_address);mac_size++){
-            ESP_LOGI(TAG,"%.2x:",device_data.mac_address[mac_size]);
+            // ESP_LOGI(TAG,"%.2x:",device_data.mac_address[mac_size]);
         }
 
 
@@ -498,7 +502,7 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
 
 void prepare_write_event_env(esp_gatt_if_t gatts_if, prepare_type_env_t *prepare_write_env, esp_ble_gatts_cb_param_t *param)
 {
-    ESP_LOGI(TAG, "prepare write, handle = %d, value len = %d", param->write.handle, param->write.len);
+    // ESP_LOGI(TAG, "prepare write, handle = %d, value len = %d", param->write.handle, param->write.len);
     esp_gatt_status_t status = ESP_GATT_OK;
     if (prepare_write_env->prepare_buf == NULL) {
         prepare_write_env->prepare_buf = (uint8_t *)malloc(PREPARE_BUF_MAX_SIZE * sizeof(uint8_t));
@@ -563,12 +567,12 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event,
             /*create device info attribute table first*/
             esp_ble_gatts_create_attr_tab(ble_gatt_info_db,gatts_if,IDX_NB_INFO,INFO_INST_ID);            break;
         case ESP_GATTS_READ_EVT:
-            ESP_LOGI(TAG,"Read Event");
+            // ESP_LOGI(TAG,"Read Event");
             break;
         case ESP_GATTS_WRITE_EVT:
             if (!param->write.is_prep){
 
-                ESP_LOGI(TAG,"attribute handle:%d, len:%d",param->write.handle,param->write.len);
+                // ESP_LOGI(TAG,"attribute handle:%d, len:%d",param->write.handle,param->write.len);
 
                 if(param->write.handle == ble_ota[IDX_CHAR_CFG_CTRL] && param->write.len==2){
                     esp_log_buffer_hex(TAG,param->write.value,2);
@@ -594,7 +598,7 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event,
                       }
 
                       num_pkgs_received++;
-                      ESP_LOGI(TAG, "Received packet %d", num_pkgs_received);
+                      // ESP_LOGI(TAG, "Received packet %d", num_pkgs_received);
                     }
 
                 }
@@ -617,8 +621,8 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event,
          *********event triggered after client request for updating MTU(set max to 350 for now)***********
          *************************************************************************************************
         */
-            ESP_LOGI(TAG,"for connection id:%u",param->mtu.conn_id);
-            ESP_LOGI(TAG,"requested MTU size from client:%u",param->mtu.mtu);
+            // ESP_LOGI(TAG,"for connection id:%u",param->mtu.conn_id);
+            // ESP_LOGI(TAG,"requested MTU size from client:%u",param->mtu.mtu);
             break;
         case ESP_GATTS_CONF_EVT:
             break;
@@ -632,12 +636,12 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event,
             break;
 
         case ESP_GATTS_CONNECT_EVT:
-            ESP_LOGI(TAG, "ESP_GATTS_CONNECT_EVT");
+            // ESP_LOGI(TAG, "ESP_GATTS_CONNECT_EVT");
              //start security connect with peer device when receive the connect event sent by the master 
             // esp_ble_set_encryption(param->connect.remote_bda, ESP_BLE_SEC_ENCRYPT_MITM);
             break;
         case ESP_GATTS_DISCONNECT_EVT:
-            ESP_LOGI(TAG, "ESP_GATTS_DISCONNECT_EVT, disconnect reason 0x%x", param->disconnect.reason);
+            // ESP_LOGI(TAG, "ESP_GATTS_DISCONNECT_EVT, disconnect reason 0x%x", param->disconnect.reason);
             /* start advertising again when missing the connect */
             esp_ble_gap_start_advertising(&esp32_ble_adv_params);
             break;
@@ -652,14 +656,14 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event,
         case ESP_GATTS_CONGEST_EVT:
             break;
         case ESP_GATTS_CREAT_ATTR_TAB_EVT: {
-            ESP_LOGI(TAG, "The number handle = %x",param->add_attr_tab.num_handle);
+            // ESP_LOGI(TAG, "The number handle = %x",param->add_attr_tab.num_handle);
             if (param->create.status == ESP_GATT_OK){
                 if(param->add_attr_tab.num_handle == IDX_NB_INFO) {
                     memcpy(ble_device_info, param->add_attr_tab.handles,sizeof(ble_device_info));
                     esp_ble_gatts_start_service(ble_device_info[IDX_SVC_INFO]);
 
                     for(int idx=0;idx<IDX_NB_INFO;idx++){
-                        ESP_LOGI(TAG,"attribute table:%d",ble_device_info[idx]);
+                        // ESP_LOGI(TAG,"attribute table:%d",ble_device_info[idx]);
                     }
 
                     /*create ota attribute table next*/
@@ -672,7 +676,7 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event,
                     esp_ble_gatts_start_service(ble_ota[IDX_SVC_OTA]);
 
                     for(int idx=0;idx<IDX_NB_OTA;idx++){
-                        ESP_LOGI(TAG,"attribute table:%d",ble_ota[idx]);
+                        // ESP_LOGI(TAG,"attribute table:%d",ble_ota[idx]);
                     }
 
                 }
@@ -706,9 +710,9 @@ static void gatts_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_
         if (param->reg.status == ESP_GATT_OK) {
             profile_tab[PROFILE_A_APP_ID].gatts_if = gatts_if;
         } else {
-            ESP_LOGI(TAG, "Reg app failed, app_id %04x, status %d\n",
-                    param->reg.app_id,
-                    param->reg.status);
+            // ESP_LOGI(TAG, "Reg app failed, app_id %04x, status %d\n",
+                    // param->reg.app_id,
+                    // param->reg.status;
             return;
         }
     }
@@ -760,18 +764,18 @@ void ota_main(void *arg){
                        updating = true;
 
                        // retrieve the packet size from OTA data
-                       ESP_LOGI(TAG, "Packet size is: %d", packet_size);
+                       // ESP_LOGI(TAG, "Packet size is: %d", packet_size);
 
                        num_pkgs_received = 0;
                     }
 
                     ack = esp_ble_gatts_send_indicate(profile_tab[PROFILE_A_APP_ID].gatts_if,conn_id,ble_ota[IDX_CHAR_VAL_CTRL],sizeof(ack_val),(uint8_t*)&ack_val,false);
                     if(ack==0){
-                       ESP_LOGI(TAG,"sent data:%d",ack);
-                       ESP_LOGI(TAG,"conn_id:%d",conn_id);
+                       // ESP_LOGI(TAG,"sent data:%d",ack);
+                       // ESP_LOGI(TAG,"conn_id:%d",conn_id);
                     }
 
-                    ESP_LOGI(TAG, "OTA request acknowledgement has been sent.");
+                    // ESP_LOGI(TAG, "OTA request acknowledgement has been sent.");
 
                     ota_ctrl_val = 0xff;
 
@@ -808,15 +812,15 @@ void ota_main(void *arg){
 
                     ack = esp_ble_gatts_send_indicate(profile_tab[PROFILE_A_APP_ID].gatts_if,conn_id,ble_ota[IDX_CHAR_VAL_CTRL],sizeof(ack_val),(uint8_t*)&ack_val,false);
                     if(ack==0){
-                       ESP_LOGI(TAG,"sent data:%d",ack);
-                       ESP_LOGI(TAG,"conn_id:%d",conn_id);
+                       // ESP_LOGI(TAG,"sent data:%d",ack);
+                       // ESP_LOGI(TAG,"conn_id:%d",conn_id);
                     }
 
-                    ESP_LOGI(TAG, "OTA DONE acknowledgement has been sent.");
+                    // ESP_LOGI(TAG, "OTA DONE acknowledgement has been sent.");
 
                     // restart the ESP to finish the OTA
                     if (err == ESP_OK) {
-                       ESP_LOGI(TAG, "Preparing to restart!");
+                       // ESP_LOGI(TAG, "Preparing to restart!");
                        vTaskDelay(pdMS_TO_TICKS(REBOOT_DEEP_SLEEP_TIMEOUT));
                        esp_restart();
                     }
@@ -850,11 +854,11 @@ void app_main(void)
     esp_partition_t* app_partition = esp_ota_get_running_partition();
 
     switch(app_partition->address){
-       case 0x10000: ESP_LOGI(TAG,"running factory app..............................................");
+       // case 0x10000: ESP_LOGI(TAG,"running factory app..............................................");
                      break;
-       case 0x110000:ESP_LOGI(TAG,"running ota_0 app................................................");
+       // case 0x110000:ESP_LOGI(TAG,"running ota_0 app................................................");
                      break;
-       case 0x210000:ESP_LOGI(TAG,"running ota_1 app................................................");
+       // case 0x210000:ESP_LOGI(TAG,"running ota_1 app................................................");
                      break;
        default:      
                      ESP_LOGI(TAG,"running unknown app..............................................");
@@ -902,29 +906,30 @@ void app_main(void)
     ESP_ERROR_CHECK( ret );
 
     ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT));
+    esp_bluedroid_config_t bluedroid_cfg = BT_BLUEDROID_INIT_CONFIG_DEFAULT();
 
     esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
-    ret = esp_bt_controller_init(&bt_cfg);
+    ret = esp_bt_controller_init(&bt_cfg); 
     if (ret) {
-        ESP_LOGE(TAG, "%s init controller failed: %s", __func__, esp_err_to_name(ret));
+        // ESP_LOGE(TAG, "%s init controller failed: %s", __func__, esp_err_to_name(ret));
         return;
     }
     ret = esp_bt_controller_enable(ESP_BT_MODE_BLE);
     if (ret) {
-        ESP_LOGE(TAG, "%s enable controller failed: %s", __func__, esp_err_to_name(ret));
+        // ESP_LOGE(TAG, "%s enable controller failed: %s", __func__, esp_err_to_name(ret));
         return;
     }
 
     /* Bluetooth stack should be up and running after below commands*/
-    ESP_LOGI(TAG, "%s init bluetooth", __func__);
-    ret = esp_bluedroid_init();
+    // ESP_LOGI(TAG, "%s init bluetooth", __func__);
+    ret = esp_bluedroid_init_with_cfg(&bluedroid_cfg);
     if (ret) {
-        ESP_LOGE(TAG, "%s init bluetooth failed: %s", __func__, esp_err_to_name(ret));
+        // ESP_LOGE(TAG, "%s init bluetooth failed: %s", __func__, esp_err_to_name(ret));
         return;
     }
     ret = esp_bluedroid_enable();
     if (ret) {
-        ESP_LOGE(TAG, "%s enable bluetooth failed: %s", __func__, esp_err_to_name(ret));
+        // ESP_LOGE(TAG, "%s enable bluetooth failed: %s", __func__, esp_err_to_name(ret));
         return;
     }
 
@@ -932,18 +937,18 @@ void app_main(void)
     pushed to the application from the BLE stack.*/
     ret = esp_ble_gatts_register_callback(gatts_event_handler);
     if (ret){
-        ESP_LOGE(TAG, "gatts register error, error code = %x", ret);
+        // ESP_LOGE(TAG, "gatts register error, error code = %x", ret);
         return;
     }
     ret = esp_ble_gap_register_callback(gap_event_handler);
     if (ret){
-        ESP_LOGE(TAG, "gap register error, error code = %x", ret);
+        // ESP_LOGE(TAG, "gap register error, error code = %x", ret);
         return;
     }
 
     ret = esp_ble_gatts_app_register(PROFILE_A_APP_ID);
     if (ret){
-        ESP_LOGE(TAG, "gatts app register error, error code = %x", ret);
+        // ESP_LOGE(TAG, "gatts app register error, error code = %x", ret);
         return;
     }
 
